@@ -2,6 +2,7 @@ package service
 
 import (
 	"PIM_Server/client"
+	"PIM_Server/utils"
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
 	"log"
@@ -22,6 +23,7 @@ var upgrade = websocket.Upgrader{
 func Websocket(r *gin.Engine) {
 	// websocket
 	r.GET("/ws", func(context *gin.Context) {
+		log.Printf("new conn")
 		c, err := upgrade.Upgrade(context.Writer, context.Request, nil)
 		if err != nil {
 			log.Print("upgrade:", err)
@@ -29,13 +31,19 @@ func Websocket(r *gin.Engine) {
 			return
 		}
 
-		log.Println("webSocket conn:", c.RemoteAddr().String())
-
 		// 用户连接事件
 		// 首先根据token获取platform和uin
 		cli := client.New(c.RemoteAddr().String(), c)
-		cli.Uid = 20221113
-		cli.PlatformId = 102
+		
+		if err, uid := utils.GetUid(context); err == nil {
+			cli.Uid = uid
+		} else {
+			log.Printf("get uid from token failed, err:%+v", err)
+			return
+		}
+		cli.PlatformId = client.PlatformWeb
+		log.Printf("[INFO] ws connected ok, uid:%d, platform:%d, conn:%s\n",
+			cli.Uid, cli.PlatformId, c.RemoteAddr().String())
 		clientManager.Register <- cli
 	})
 }

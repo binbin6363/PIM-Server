@@ -1,9 +1,10 @@
 package routers
 
 import (
-	"net/http"
-
+	"PIM_Server/service"
 	"github.com/gin-gonic/gin"
+	"log"
+	"net/http"
 )
 
 type Option func(*gin.Engine)
@@ -32,6 +33,26 @@ func Cors() gin.HandlerFunc {
 	}
 }
 
+// JWTAuthMiddleware 基于JWT的认证中间件
+func JWTAuthMiddleware() func(c *gin.Context) {
+	return func(c *gin.Context) {
+		// 只有ws才校验token
+		if c.Request.URL.Path != "/ws" {
+			return
+		}
+
+		sc, err := service.DefaultService.ParseToken(c.Query("token"))
+		if err != nil {
+			log.Printf("parse token failed, disconnect ws, err:%+v", err)
+			return
+		}
+		c.Set("uid", sc.Id)
+		c.Set("username", sc.Audience)
+
+		c.Next() // 后续的处理函数可以用过c.Get("username")来获取当前请求的用户信息
+	}
+}
+
 // Register 注册路由配置
 func Register(opts ...Option) {
 	options = append(options, opts...)
@@ -41,6 +62,7 @@ func Register(opts ...Option) {
 func Init() *gin.Engine {
 	r := gin.Default()
 	r.Use(Cors())
+	r.Use(JWTAuthMiddleware())
 	for _, opt := range options {
 		opt(r)
 	}

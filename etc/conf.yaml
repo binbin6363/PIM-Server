@@ -2,6 +2,10 @@ server:
   name: im_server                #service名字
   listen: ":8080"                #服务监听地址端口
   timeout: 1000                  #请求最长处理时间 单位 毫秒
+  secret: "dfvjhklvqkvbkjhgdjavd"                     # 生成token的secret
+  token_expire: 7200             # token有效期，单位秒
+  data_center_id: 1              # 数据中心ID。0-31之间取值，用于雪花算法
+  worker_id: 1                   # 数据中心ID。0-31之间取值，用于雪花算法
 
 db:
   dsn: ""

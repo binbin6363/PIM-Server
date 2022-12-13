@@ -2,45 +2,39 @@ package chat
 
 import (
 	"PIM_Server/api"
+	"PIM_Server/service"
+	"PIM_Server/utils"
 	"github.com/gin-gonic/gin"
-	"net/http"
+	"log"
 )
 
-func textMsgHandler(c *gin.Context) {
+func onTextMsgHandler(c *gin.Context) {
 
-	rsp := api.SendTextMsgRsp{
-		Id:         10001,
-		TalkType:   1,
-		ReceiverId: 20221114,
-		Name:       "20221114",
-		RemarkName: "mark",
-		Avatar:     "",
-		IsDisturb:  0,
-		IsTop:      0,
-		IsOnline:   0,
-		IsRobot:    0,
-		UnreadNum:  1,
-		Content:    "chat content",
-		DraftText:  "",
-		MsgText:    "chat MsgText",
-		IndexName:  "",
-		CreatedAt:  "20221119",
+	notice := &api.SendTextMsgNotice{}
+	if err := c.ShouldBind(notice); err != nil {
+		log.Printf("bind text msg notice failed, err:%+v", err)
+		utils.SendJsonRsp(c, &api.CommRsp{
+			Code:    4000,
+			Message: err.Error(),
+		})
+		return
 	}
-	c.JSON(http.StatusOK, gin.H{
-		"code":    200,
-		"message": "success",
-		"data":    rsp,
-	})
 
-	req := &api.SendTextMsgReq{}
-	c.BindJSON(req)
-	//service.OnTextMsg(req)
+	err := service.DefaultService.OnTextMsg(notice)
+	if err != nil {
+		utils.SendJsonRsp(c, &api.CommRsp{
+			Code:    1000,
+			Message: err.Error(),
+		})
+	} else {
+		utils.SendJsonRsp(c, nil)
+	}
 }
 
 // Routers .
 func Routers(r *gin.Engine) {
 	login := r.Group("/notice/message")
 	{
-		login.POST("/text", textMsgHandler)
+		login.POST("/text", onTextMsgHandler)
 	}
 }

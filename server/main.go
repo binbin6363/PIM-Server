@@ -4,6 +4,7 @@ import (
 	"PIM_Server/config"
 	routers "PIM_Server/routes"
 	"PIM_Server/routes/auth"
+	"PIM_Server/routes/chat"
 	"PIM_Server/service"
 	"flag"
 	"log"
@@ -24,7 +25,7 @@ func main() {
 	// 加载多个APP的路由配置。有新增路由在此处注册
 	routers.Register(service.Websocket)
 	// auth相关通知
-	routers.Register(auth.Routers)
+	routers.Register(auth.Routers, chat.Routers)
 
 	// 初始化路由
 	r := routers.Init()

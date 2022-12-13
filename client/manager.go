@@ -32,12 +32,13 @@ func NewManager() (manager *Manager) {
 }
 
 // GetUserKey 获取用户key
-func GetUserKey(platform uint32, uid int64) (key string) {
+func GetUserKey(platform PlatformType, uid int64) (key string) {
 	return fmt.Sprintf("%d_%d", platform, uid)
 }
 
 /**************************  manager  ***************************************/
 
+// InClient 判断是否存在
 func (manager *Manager) InClient(client *Client) (ok bool) {
 	manager.ClientsLock.RLock()
 	defer manager.ClientsLock.RUnlock()
@@ -48,7 +49,7 @@ func (manager *Manager) InClient(client *Client) (ok bool) {
 	return
 }
 
-// GetClients
+// GetClients 获取连接
 func (manager *Manager) GetClients() (clients map[*Client]bool) {
 
 	clients = make(map[*Client]bool)
@@ -62,7 +63,7 @@ func (manager *Manager) GetClients() (clients map[*Client]bool) {
 	return
 }
 
-// 遍历
+// ClientsRange 遍历
 func (manager *Manager) ClientsRange(f func(client *Client, value bool) (result bool)) {
 
 	manager.ClientsLock.RLock()
@@ -78,7 +79,7 @@ func (manager *Manager) ClientsRange(f func(client *Client, value bool) (result 
 	return
 }
 
-// GetClientsLen
+// GetClientsLen 获取连接数量
 func (manager *Manager) GetClientsLen() (clientsLen int) {
 
 	clientsLen = len(manager.Clients)
@@ -86,7 +87,7 @@ func (manager *Manager) GetClientsLen() (clientsLen int) {
 	return
 }
 
-// 添加客户端
+// AddClients 添加客户端
 func (manager *Manager) AddClients(client *Client) {
 	manager.ClientsLock.Lock()
 	defer manager.ClientsLock.Unlock()
@@ -94,7 +95,7 @@ func (manager *Manager) AddClients(client *Client) {
 	manager.Clients[client] = true
 }
 
-// 删除客户端
+// DelClients 删除客户端
 func (manager *Manager) DelClients(client *Client) {
 	manager.ClientsLock.Lock()
 	defer manager.ClientsLock.Unlock()
@@ -105,7 +106,7 @@ func (manager *Manager) DelClients(client *Client) {
 }
 
 // GetUserClient 获取用户的连接
-func (manager *Manager) GetUserClient(platformID uint32, uid int64) (client *Client) {
+func (manager *Manager) GetUserClient(platformID PlatformType, uid int64) (client *Client) {
 
 	manager.UserLock.RLock()
 	defer manager.UserLock.RUnlock()
@@ -118,14 +119,14 @@ func (manager *Manager) GetUserClient(platformID uint32, uid int64) (client *Cli
 	return
 }
 
-// GetClientsLen
+// GetUsersLen 获取用户数量
 func (manager *Manager) GetUsersLen() (userLen int) {
 	userLen = len(manager.Users)
 
 	return
 }
 
-// 添加用户
+// AddUsers 添加用户
 func (manager *Manager) AddUsers(key string, client *Client) {
 	manager.UserLock.Lock()
 	defer manager.UserLock.Unlock()
@@ -133,7 +134,7 @@ func (manager *Manager) AddUsers(key string, client *Client) {
 	manager.Users[key] = client
 }
 
-// 删除用户
+// DelUsers 删除用户
 func (manager *Manager) DelUsers(client *Client) (result bool) {
 	manager.UserLock.Lock()
 	defer manager.UserLock.Unlock()
@@ -152,7 +153,7 @@ func (manager *Manager) DelUsers(client *Client) (result bool) {
 	return
 }
 
-// 获取用户的key
+// GetUserKeys 获取所有用户的key
 func (manager *Manager) GetUserKeys() (userKeys []string) {
 
 	userKeys = make([]string, 0)
@@ -165,8 +166,8 @@ func (manager *Manager) GetUserKeys() (userKeys []string) {
 	return
 }
 
-// GetUserList 获取用户的key
-func (manager *Manager) GetUserList(platformId uint32) (userList []int64) {
+// GetUserList 获取指定平台下的用户uid列表
+func (manager *Manager) GetUserList(platformId PlatformType) (userList []int64) {
 
 	userList = make([]int64, 0)
 
@@ -184,7 +185,7 @@ func (manager *Manager) GetUserList(platformId uint32) (userList []int64) {
 	return
 }
 
-// 获取用户的key
+// GetUserClients 获取用户的key
 func (manager *Manager) GetUserClients() (clients []*Client) {
 
 	clients = make([]*Client, 0)
@@ -197,24 +198,24 @@ func (manager *Manager) GetUserClients() (clients []*Client) {
 	return
 }
 
-// 向全部成员(除了自己)发送数据
+// sendAll 向全部成员(除了自己)发送数据
 func (manager *Manager) sendAll(message []byte, ignoreClient *Client) {
 
 	clients := manager.GetUserClients()
 	for _, conn := range clients {
 		if conn != ignoreClient {
-			conn.SendMsg(message)
+			conn.SendRawMsg(message)
 		}
 	}
 }
 
-// 向全部成员(除了自己)发送数据
-func (manager *Manager) sendAppIdAll(message []byte, platformId uint32, ignoreClient *Client) {
+// sendAppIdAll 向全部成员(除了自己)发送数据
+func (manager *Manager) sendAppIdAll(message []byte, platformId PlatformType, ignoreClient *Client) {
 
 	clients := manager.GetUserClients()
 	for _, conn := range clients {
 		if conn != ignoreClient && conn.PlatformId == platformId {
-			conn.SendMsg(message)
+			conn.SendRawMsg(message)
 		}
 	}
 }
@@ -225,8 +226,8 @@ func (manager *Manager) EventRegister(client *Client) {
 	manager.AddUsers(GetUserKey(client.PlatformId, client.Uid), client)
 
 	fmt.Println("EventRegister client conn, addr", client.Addr)
-
-	client.Send <- []byte("conn success")
+	go client.Run()
+	client.Send <- []byte("{\"event\":\"heartbeat\",\"content\":\"pong\"}")
 }
 
 // EventLogin 用户登录
@@ -238,16 +239,16 @@ func (manager *Manager) EventLogin(login *Login) {
 		return
 	}
 
-	client := login.Client
+	cli := login.Client
 	// 连接存在，在添加
-	if manager.InClient(client) {
+	if manager.InClient(cli) {
 		userKey := login.GetKey()
 		manager.AddUsers(userKey, login.Client)
 	}
 
-	fmt.Println("EventLogin client auth", client.Addr, login.PlatformID, login.Uid)
+	fmt.Println("EventLogin client auth", cli.Addr, login.PlatformID, login.Uid)
 
-	//go client.Run()
+	//go cli.Run()
 
 	//orderId := helper.GetOrderIdTime()
 	//SendUserMessageAll(auth.PlatformID, auth.UserId, orderId, models.MessageCmdEnter, "哈喽~")

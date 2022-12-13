@@ -7,9 +7,13 @@ import (
 )
 
 type ServerInfo struct {
-	Name    string `yaml:"name"`
-	Listen  string `yaml:"listen"`
-	Timeout int    `yaml:"timeout"`
+	Name         string `yaml:"name"`
+	Listen       string `yaml:"listen"`
+	Timeout      int    `yaml:"timeout"`
+	Secret       string `yaml:"secret"`
+	TokenExpire  int    `yaml:"token_expire"`
+	DataCenterId int64  `yaml:"data_center_id"`
+	WorkerId     int64  `yaml:"worker_id"`
 }
 
 type DBInfo struct {

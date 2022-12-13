@@ -1,26 +1,41 @@
 package api
 
-type SendTextMsgReq struct {
-	ReceiverId int    `json:"receiver_id"`
-	TalkType   int    `json:"talk_type"`
-	Text       string `json:"text"`
+type SendTextMsgNotice struct {
+	Event   string             `json:"event"`
+	Content SendTextMsgContent `json:"content"`
 }
 
-type SendTextMsgRsp struct {
-	Id         int    `json:"id"`
+type SendTextMsgEvtRsp struct {
+	Event   string             `json:"event"`
+	Content SendTextMsgContent `json:"content"`
+}
+
+type SendTextMsgContent struct {
+	Data       SendTextMsgData `json:"data"`
+	ReceiverId int64           `json:"receiver_id"`
+	SenderId   int64           `json:"sender_id"`
+	TalkType   int             `json:"talk_type"`
+}
+
+type SendTextMsgData struct {
+	Id         int64  `json:"id"`
+	Sequence   int64  `json:"sequence"`
 	TalkType   int    `json:"talk_type"`
-	ReceiverId int    `json:"receiver_id"`
-	Name       string `json:"name"`
-	RemarkName string `json:"remark_name"`
+	MsgType    int    `json:"msg_type"`
+	UserId     int64  `json:"user_id"`
+	ReceiverId int64  `json:"receiver_id"`
+	Nickname   string `json:"nickname"`
 	Avatar     string `json:"avatar"`
-	IsDisturb  int    `json:"is_disturb"`
-	IsTop      int    `json:"is_top"`
-	IsOnline   int    `json:"is_online"`
-	IsRobot    int    `json:"is_robot"`
-	UnreadNum  int    `json:"unread_num"`
+	IsRevoke   int    `json:"is_revoke"`
+	IsMark     int    `json:"is_mark"`
+	IsRead     int    `json:"is_read"`
 	Content    string `json:"content"`
-	DraftText  string `json:"draft_text"`
-	MsgText    string `json:"msg_text"`
-	IndexName  string `json:"index_name"`
 	CreatedAt  string `json:"created_at"`
+}
+
+// CommRsp 针对请求的ack
+type CommRsp struct {
+	Code    int         `json:"code"`
+	Message string      `json:"message"`
+	Data    interface{} `json:"data"`
 }
