@@ -1,9 +1,9 @@
 package routers
 
 import (
+	"PIM_Server/log"
 	"PIM_Server/service"
 	"github.com/gin-gonic/gin"
-	"log"
 	"net/http"
 )
 
@@ -43,7 +43,7 @@ func JWTAuthMiddleware() func(c *gin.Context) {
 
 		sc, err := service.DefaultService.ParseToken(c.Query("token"))
 		if err != nil {
-			log.Printf("parse token failed, disconnect ws, err:%+v", err)
+			log.Infof("parse token failed, disconnect ws, err:%+v", err)
 			return
 		}
 		c.Set("uid", sc.Id)

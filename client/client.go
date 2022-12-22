@@ -1,11 +1,11 @@
 package client
 
 import (
+	"PIM_Server/log"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/gorilla/websocket"
-	"log"
 	"runtime/debug"
 	"time"
 )
@@ -71,7 +71,7 @@ func (c *Client) Close() {
 func (c *Client) SendRawMsg(msg []byte) {
 
 	if c == nil {
-		log.Printf("client nil")
+		log.Infof("client nil")
 		return
 	}
 
@@ -88,7 +88,7 @@ func (c *Client) SendRawMsg(msg []byte) {
 func (c *Client) SendJsonMsg(obj interface{}) error {
 
 	if c == nil {
-		log.Printf("[ERROR] client nil")
+		log.Infof("[ERROR] client nil")
 		return errors.New("client not exist")
 	}
 
@@ -99,10 +99,10 @@ func (c *Client) SendJsonMsg(obj interface{}) error {
 	}()
 
 	if data, err := json.Marshal(obj); err != nil {
-		log.Printf("[ERROR] send error, json Marshal failed, err:%+v\n", err)
+		log.Infof("[ERROR] send error, json Marshal failed, err:%+v", err)
 		return err
 	} else {
-		log.Printf("[INFO] send %s\n", string(data))
+		log.Infof("send %s", string(data))
 		c.Send <- data
 		return nil
 	}
@@ -113,7 +113,7 @@ func (c *Client) Run() {
 		select {
 		case data := <-c.Send:
 			// 发送数据
-			log.Printf("real send data to socket\n")
+			log.Infof("real send data to socket")
 			c.Socket.WriteMessage(websocket.TextMessage, data)
 		}
 	}

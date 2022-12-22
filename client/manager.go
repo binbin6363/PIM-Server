@@ -2,8 +2,9 @@ package client
 
 import (
 	"fmt"
-	"log"
 	"sync"
+
+	"PIM_Server/log"
 )
 
 // Manager 连接管理
@@ -235,7 +236,7 @@ func (manager *Manager) EventRegister(client *Client) {
 func (manager *Manager) EventLogin(login *Login) {
 
 	if login == nil {
-		log.Printf("client is nil.")
+		log.Infof("client is nil.")
 		return
 	}
 

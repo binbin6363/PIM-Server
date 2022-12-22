@@ -1,9 +1,9 @@
 package config
 
 import (
+	"PIM_Server/log"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
-	"log"
 )
 
 type ServerInfo struct {
@@ -48,5 +48,5 @@ func Init(file string) {
 		log.Fatalf("Unmarshal conf fail, err:%v", err)
 	}
 
-	log.Printf("load conf ok, path:%s, conf:\n%v\n", file, string(configFile))
+	log.Infof("load conf ok, path:%s, conf:%v", file, string(configFile))
 }

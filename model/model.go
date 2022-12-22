@@ -106,3 +106,20 @@ type GroupMessages struct {
 func (GroupMessages) TableName() string {
 	return "group_messages"
 }
+
+// GroupMembers 群信息列表
+type GroupMembers struct {
+	ID         int64  `gorm:"column:id;primarykey;AUTO_INCREMENT"`
+	GroupID    int64  `gorm:"column:group_id"`
+	Uid        int64  `gorm:"column:uid"`
+	UserRole   int    `gorm:"column:user_role"`   // 成员角色，1普通成员，2群管理员
+	RemarkName string `gorm:"column:remark_name"` // 用户自己备注在群里的名字
+	Sequence   int64  `gorm:"column:sequence"`
+	CreateTime int64  `gorm:"column:create_time"`
+	UpdateTime int64  `gorm:"column:update_time"`
+}
+
+// TableName 默认是通过结构体的蛇形复数来指定表名，这里通过TableName显示定义出来，便于问题排查
+func (GroupMembers) TableName() string {
+	return "group_members"
+}

@@ -2,10 +2,10 @@ package service
 
 import (
 	"PIM_Server/client"
+	"PIM_Server/log"
 	"PIM_Server/utils"
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
-	"log"
 	"net/http"
 )
 
@@ -14,7 +14,7 @@ var upgrade = websocket.Upgrader{
 	WriteBufferSize: 1024,
 	// 解决跨域问题
 	CheckOrigin: func(r *http.Request) bool {
-		log.Println("upgrade ua:", r.Header["User-Agent"], ", referer:", r.Header["Referer"])
+		log.Info("upgrade ua:", r.Header["User-Agent"], ", referer:", r.Header["Referer"])
 		return true
 	},
 }
@@ -23,10 +23,10 @@ var upgrade = websocket.Upgrader{
 func Websocket(r *gin.Engine) {
 	// websocket
 	r.GET("/ws", func(context *gin.Context) {
-		log.Printf("new conn")
+		log.Infof("new conn")
 		c, err := upgrade.Upgrade(context.Writer, context.Request, nil)
 		if err != nil {
-			log.Print("upgrade:", err)
+			log.Errorf("upgrade:", err)
 			http.NotFound(context.Writer, context.Request)
 			return
 		}
@@ -34,15 +34,15 @@ func Websocket(r *gin.Engine) {
 		// 用户连接事件
 		// 首先根据token获取platform和uin
 		cli := client.New(c.RemoteAddr().String(), c)
-		
+
 		if err, uid := utils.GetUid(context); err == nil {
 			cli.Uid = uid
 		} else {
-			log.Printf("get uid from token failed, err:%+v", err)
+			log.Infof("get uid from token failed, err:%+v", err)
 			return
 		}
 		cli.PlatformId = client.PlatformWeb
-		log.Printf("[INFO] ws connected ok, uid:%d, platform:%d, conn:%s\n",
+		log.Infof("ws connected ok, uid:%d, platform:%d, conn:%s",
 			cli.Uid, cli.PlatformId, c.RemoteAddr().String())
 		clientManager.Register <- cli
 	})

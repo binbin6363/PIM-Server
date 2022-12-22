@@ -2,11 +2,11 @@ package service
 
 import (
 	"context"
-	"log"
 	"strconv"
 	"time"
 
 	"PIM_Server/config"
+	"PIM_Server/log"
 	"PIM_Server/model"
 	"github.com/dgrijalva/jwt-go"
 )
@@ -26,10 +26,10 @@ func (s *Service) CreateJwt(_ context.Context, userInfo *model.UserInfo) (error,
 	var jwtSecret = []byte(config.AppConfig().ServerInfo.Secret)
 	tokenClaims := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	if token, err := tokenClaims.SignedString(jwtSecret); err == nil {
-		log.Printf("gen token ok, %s(%d) token:[%s]", userInfo.UserName, userInfo.Uid, token)
+		log.Infof("gen token ok, %s(%d) token:[%s]", userInfo.UserName, userInfo.Uid, token)
 		return nil, token
 	} else {
-		log.Printf("gen token failed, %s(%d) err:%v", userInfo.UserName, userInfo.Uid, err)
+		log.Infof("gen token failed, %s(%d) err:%v", userInfo.UserName, userInfo.Uid, err)
 		return err, ""
 	}
 }
@@ -44,6 +44,6 @@ func (s *Service) ParseToken(token string) (*jwt.StandardClaims, error) {
 		}
 	}
 
-	log.Printf("token invalid, token:%s, jwtToken:%+v\n", token, jwtToken)
+	log.Infof("token invalid, token:%s, jwtToken:%+v", token, jwtToken)
 	return nil, err
 }

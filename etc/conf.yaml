@@ -8,7 +8,7 @@ server:
   worker_id: 1                   # 数据中心ID。0-31之间取值，用于雪花算法
 
 db:
-  dsn: ""
+  dsn: "pim:polite@123@tcp(127.0.0.1:3306)/db_pim?charset=latin1&parseTime=True&loc=Local"
   max_idle_conns: 10
   max_open_conns: 100
   max_life_time: 3600
