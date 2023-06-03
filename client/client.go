@@ -146,7 +146,7 @@ func (c *Client) HandleMessage(messageType int, data []byte) {
 }
 
 func (c *Client) HandleText(data []byte) {
-	log.Infof("receive test from uid:%d", c.Uid)
+	log.Infof("receive text from uid:%d", c.Uid)
 }
 
 func (c *Client) HandleBinary(data []byte) {
