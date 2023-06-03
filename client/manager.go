@@ -228,7 +228,7 @@ func (manager *Manager) EventRegister(client *Client) {
 
 	fmt.Println("EventRegister client conn, addr", client.Addr)
 	go client.Run()
-	client.Send <- []byte("{\"event\":\"connect\",\"ping_interval\":\"20\",\"ping_timeout\":60}")
+	client.Send <- []byte("{\"event\":\"connect\",\"ping_interval\":20,\"ping_timeout\":60}")
 }
 
 // EventLogin 用户登录
