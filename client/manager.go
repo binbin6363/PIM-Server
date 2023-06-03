@@ -13,7 +13,7 @@ type Manager struct {
 	ClientsLock sync.RWMutex       // 读写锁
 	Users       map[string]*Client // 登录的用户 // platform+uuid
 	UserLock    sync.RWMutex       // 读写锁
-	Register    chan *Client       // 连接连接处理
+	Register    chan *Client       // 用户连接处理
 	Login       chan *Login        // 用户登录处理
 	Unregister  chan *Client       // 断开连接处理程序
 	Broadcast   chan []byte        // 广播 向全部成员发送数据
@@ -228,7 +228,7 @@ func (manager *Manager) EventRegister(client *Client) {
 
 	fmt.Println("EventRegister client conn, addr", client.Addr)
 	go client.Run()
-	client.Send <- []byte("{\"event\":\"heartbeat\",\"content\":\"pong\"}")
+	client.Send <- []byte("{\"event\":\"connect\",\"ping_interval\":\"20\",\"ping_timeout\":60}")
 }
 
 // EventLogin 用户登录

@@ -6,6 +6,8 @@ import (
 	"errors"
 	"fmt"
 	"github.com/gorilla/websocket"
+	"github.com/spf13/cast"
+	"io"
 	"runtime/debug"
 	"time"
 )
@@ -60,9 +62,11 @@ func New(addr string, socket *websocket.Conn) (client *Client) {
 func (c *Client) Close() {
 	close(c.Send)
 	if err := c.Socket.Close(); err != nil {
-		fmt.Println("conn close failed,", c.Addr, c.PlatformId, c.Uid, c.ConnTime, c.HeartbeatTime, c.LoginTime)
+		log.Errorf("conn close failed, addr:%s, platform:%d,uid:%d,conn time:%d,heartbeat time:%d,login time:%d",
+			c.Addr, c.PlatformId, c.Uid, c.ConnTime, c.HeartbeatTime, c.LoginTime)
 	} else {
-		fmt.Println("conn close success,", c.Addr, c.PlatformId, c.Uid, c.ConnTime, c.HeartbeatTime, c.LoginTime)
+		log.Errorf("conn close success, addr:%s, platform:%d,uid:%d,conn time:%d,heartbeat time:%d,login time:%d",
+			c.Addr, c.PlatformId, c.Uid, c.ConnTime, c.HeartbeatTime, c.LoginTime)
 	}
 
 }
@@ -108,13 +112,72 @@ func (c *Client) SendJsonMsg(obj interface{}) error {
 	}
 }
 
+func (c *Client) ReceiveMessage() {
+	for {
+		t, d, e := c.Socket.ReadMessage()
+		if e == io.EOF || e == io.ErrUnexpectedEOF {
+			// close
+			log.Errorf("conn closed by peer, uid:%d", c.Uid)
+			c.Close()
+			return
+		} else if e != nil {
+			log.Errorf("read conn err: %v, uid:%d", e, c.Uid)
+			return
+		}
+
+		// handle message
+		c.HandleMessage(t, d)
+	}
+}
+
+func (c *Client) HandleMessage(messageType int, data []byte) {
+	switch messageType {
+	case websocket.TextMessage:
+		c.HandleText(data)
+	case websocket.BinaryMessage:
+		c.HandleBinary(data)
+	case websocket.CloseMessage:
+		c.Close()
+	case websocket.PingMessage:
+		c.HandlePing(data)
+	case websocket.PongMessage:
+		// nothing
+	}
+}
+
+func (c *Client) HandleText(data []byte) {
+	log.Infof("receive test from uid:%d", c.Uid)
+}
+
+func (c *Client) HandleBinary(data []byte) {
+	log.Infof("receive binary from uid:%d", c.Uid)
+}
+
+func (c *Client) HandlePing(data []byte) {
+	log.Infof("receive ping from uid:%d", c.Uid)
+	c.HeartbeatTime = time.Now().Unix()
+	c.SendJsonMsg(map[string]string{
+		"event": "heartbeat",
+		"time":  cast.ToString(c.HeartbeatTime),
+	})
+}
+
 func (c *Client) Run() {
+	go c.ReceiveMessage()
 	for {
 		select {
-		case data := <-c.Send:
+		case data, ok := <-c.Send:
+			if !ok {
+				log.Errorf("conn closed, exit. uid::%d", c.Uid)
+				c.Send = nil
+				return
+			}
 			// 发送数据
 			log.Infof("real send data to socket")
-			c.Socket.WriteMessage(websocket.TextMessage, data)
+			if err := c.Socket.WriteMessage(websocket.TextMessage, data); err != nil {
+				log.Errorf("write message failed, uid:%d", c.Uid)
+			}
+
 		}
 	}
 }

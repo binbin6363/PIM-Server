@@ -26,7 +26,7 @@ func New(dsn string, dataCenterId, workerId int64) *Dao {
 }
 
 func (d *Dao) db(ctx context.Context) *gorm.DB {
-	return d.commDB
+	return d.commDB.Debug()
 }
 
 func (d *Dao) GetGroupMemberList(ctx context.Context, groupId int64) (error, []*model.GroupMembers) {
@@ -37,7 +37,7 @@ func (d *Dao) GetGroupMemberList(ctx context.Context, groupId int64) (error, []*
 	}
 
 	groupMembers := make([]*model.GroupMembers, 0)
-	if err := r.Table(model.GroupMembers{}.TableName()).Debug().Where("group_id=?", groupId).Scan(&groupMembers).Error; err != nil {
+	if err := r.Table(model.GroupMembers{}.TableName()).Where("group_id=?", groupId).Scan(&groupMembers).Error; err != nil {
 		log.Infof("GetGroupMemberList read db error(%v) groupId(%d)", err, groupId)
 		return err, nil
 	}
