@@ -1,6 +1,7 @@
 package client
 
 import (
+	"PIM_Server/api"
 	"PIM_Server/log"
 	"encoding/json"
 	"errors"
@@ -147,6 +148,17 @@ func (c *Client) HandleMessage(messageType int, data []byte) {
 
 func (c *Client) HandleText(data []byte) {
 	log.Infof("receive text from uid:%d", c.Uid)
+	msg := &api.ClientEventReq{}
+	if err := json.Unmarshal(data, msg); err != nil {
+		log.Errorf("parse client msg err, err:%v", err)
+		return
+	}
+
+	rsp := &api.ClientEventRsp{
+		Event: msg.Event,
+	}
+	c.HeartbeatTime = time.Now().Unix()
+	c.SendJsonMsg(rsp)
 }
 
 func (c *Client) HandleBinary(data []byte) {

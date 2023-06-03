@@ -39,3 +39,17 @@ type CommRsp struct {
 	Message string      `json:"message"`
 	Data    interface{} `json:"data"`
 }
+
+// ClientEventReq 客户端上行的消息
+type ClientEventReq struct {
+	Event   string      `json:"event"`
+	Content string      `json:"content"`
+	Data    interface{} `json:"data"`
+}
+
+// ClientEventRsp 客户端下行的消息
+type ClientEventRsp struct {
+	Event   string      `json:"event"`
+	Content string      `json:"content"`
+	Data    interface{} `json:"data"`
+}
