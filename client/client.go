@@ -10,6 +10,7 @@ import (
 	"github.com/spf13/cast"
 	"io"
 	"runtime/debug"
+	"strings"
 	"time"
 )
 
@@ -123,6 +124,7 @@ func (c *Client) ReceiveMessage() {
 			return
 		} else if e != nil {
 			log.Errorf("read conn err: %v, uid:%d", e, c.Uid)
+			c.Close()
 			return
 		}
 
@@ -153,6 +155,13 @@ func (c *Client) HandleText(data []byte) {
 		log.Errorf("parse client msg err, err:%v", err)
 		return
 	}
+
+	if strings.HasSuffix(msg.Event, "ack") {
+		log.Infof("recv ack from client: %v", msg)
+		return
+	}
+
+	// 处理客户端上行消息
 
 	rsp := &api.ClientEventRsp{
 		Event: msg.Event,
