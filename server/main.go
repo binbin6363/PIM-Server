@@ -7,6 +7,8 @@ import (
 	"PIM_Server/service"
 	"flag"
 	"os"
+
+	"github.com/gin-gonic/gin"
 )
 
 var (
@@ -18,6 +20,9 @@ var (
 func main() {
 	confFile := flag.String("f", "../etc/conf.yaml", "配置文件路径")
 	flag.Parse()
+	config.Init(*confFile)
+	gin.SetMode(config.AppConfig().ServerInfo.Mode)
+
 	log.InitLogger(config.AppConfig().LogInfo.Path,
 		config.AppConfig().LogInfo.MaxSize,
 		config.AppConfig().LogInfo.MaxBackUps,
@@ -25,14 +30,12 @@ func main() {
 		config.AppConfig().LogInfo.Level,
 		config.AppConfig().LogInfo.CallerSkip)
 
-	config.Init(*confFile)
-
 	log.Infof("Start im_server, listen: %s", config.AppConfig().ServerInfo.Listen)
 
-	service.Init()
-	service.StartClientMgr()
-
+	// 初始化gin插件
 	r := plugins.Init(serviceName)
+	service.Init()
+
 	if err := r.Run(config.AppConfig().ServerInfo.Listen); err != nil {
 		log.Fatalf("startup service failed, err:%v", err)
 	}

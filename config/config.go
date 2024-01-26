@@ -16,6 +16,7 @@ type ServerInfo struct {
 	DataCenterId int64  `yaml:"data_center_id"`
 	WorkerId     int64  `yaml:"worker_id"`
 	DebugReqRsp  bool   `yaml:"debug_req_rsp"`
+	Mode         string `yaml:"mode"`
 }
 
 type LogInfo struct {

@@ -47,4 +47,5 @@ func New() *Service {
 // Init .
 func Init() {
 	DefaultService = New()
+	StartClientMgr()
 }
