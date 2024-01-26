@@ -1,9 +1,10 @@
 package config
 
 import (
-	"PIM_Server/log"
+	"log"
+	"os"
+
 	"gopkg.in/yaml.v2"
-	"io/ioutil"
 )
 
 type ServerInfo struct {
@@ -14,6 +15,16 @@ type ServerInfo struct {
 	TokenExpire  int    `yaml:"token_expire"`
 	DataCenterId int64  `yaml:"data_center_id"`
 	WorkerId     int64  `yaml:"worker_id"`
+	DebugReqRsp  bool   `yaml:"debug_req_rsp"`
+}
+
+type LogInfo struct {
+	Path       string `yaml:"path"`
+	Level      int    `yaml:"level"`
+	MaxSize    int    `yaml:"max_size"` // mb
+	MaxAge     int    `yaml:"max_age"`  // day
+	MaxBackUps int    `yaml:"max_backups"`
+	CallerSkip int    `yaml:"caller_skip"`
 }
 
 type DBInfo struct {
@@ -27,6 +38,7 @@ type DBInfo struct {
 type ServerCfg struct {
 	ServerInfo *ServerInfo `yaml:"server"`
 	DBInfo     *DBInfo     `yaml:"db"`
+	LogInfo    *LogInfo    `yaml:"log"`
 }
 
 // 配置实例
@@ -39,7 +51,7 @@ func AppConfig() *ServerCfg {
 
 // Init 初始化配置
 func Init(file string) {
-	configFile, err := ioutil.ReadFile(file)
+	configFile, err := os.ReadFile(file)
 	if err != nil {
 		log.Fatalf("load conf fail, path:%s, err:%v", file, err)
 	}
@@ -48,5 +60,5 @@ func Init(file string) {
 		log.Fatalf("Unmarshal conf fail, err:%v", err)
 	}
 
-	log.Infof("load conf ok, path:%s, conf:%v", file, string(configFile))
+	log.Printf("load conf ok, path:%s, conf:%v", file, string(configFile))
 }

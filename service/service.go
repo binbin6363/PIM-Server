@@ -25,6 +25,10 @@ func StartClientMgr() {
 	go clientManager.Start()
 }
 
+func AddClient(cli *client.Client) {
+	clientManager.Register <- cli
+}
+
 // Service is service logic object
 type Service struct {
 	dao *dao.Dao
