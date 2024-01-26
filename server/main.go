@@ -1,15 +1,17 @@
 package main
 
 import (
-	"PIM_Server/config"
-	"PIM_Server/log"
-	"PIM_Server/plugins"
-	"PIM_Server/service"
 	"context"
 	"flag"
 	"os"
 	"strings"
 
+	"PIM_Server/config"
+	"PIM_Server/log"
+	"PIM_Server/plugins"
+	"PIM_Server/service"
+
+	"github.com/gin-gonic/gin"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace"
@@ -17,8 +19,6 @@ import (
 	"go.opentelemetry.io/otel/sdk/resource"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	"google.golang.org/grpc/credentials"
-
-	"github.com/gin-gonic/gin"
 )
 
 var (
